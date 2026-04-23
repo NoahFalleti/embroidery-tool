@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embroidery Cost Comparison</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #1a1a1a; padding: 2rem 1rem; }
+  .container { max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 1.5rem; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+  .control-group label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+  select, input[type=number] {
+    width: 100%; padding: 8px 10px; font-size: 14px;
+    border: 1px solid #ddd; border-radius: 8px; background: #fff;
+    outline: none; appearance: none;
+  }
+  select:focus, input:focus { border-color: #999; }
+  .toggle-row { display: flex; gap: 8px; }
+  .toggle-btn {
+    flex: 1; padding: 8px; font-size: 13px;
+    border: 1px solid #ddd; border-radius: 8px;
+    background: #fff; color: #1a1a1a; cursor: pointer; text-align: center;
+  }
+  .toggle-btn.active { background: #eff6ff; color: #1d4ed8; border-color: #93c5fd; font-weight: 500; }
+  .results { display: grid; gap: 12px; }
+  .vendor-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem 1.25rem; }
+  .vendor-card.best { border: 2px solid #22c55e; }
+  .best-badge { display: inline-block; background: #dcfce7; color: #15803d; font-size: 11px; padding: 2px 8px; border-radius: 6px; margin-bottom: 8px; }
+  .vendor-name { font-size: 13px; font-weight: 500; color: #666; margin-bottom: 4px; }
+  .unit-price { font-size: 26px; font-weight: 500; color: #1a1a1a; }
+  .unit-label { font-size: 12px; color: #888; }
+  .overage { margin-top: 4px; font-size: 11px; color: #aaa; font-style: italic; }
+  .total-line { margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f0f0; font-size: 13px; color: #666; }
+  .total-line strong { color: #1a1a1a; font-weight: 500; }
+  .allin-line { margin-top: 6px; padding: 6px 8px; background: #f5f5f3; border-radius: 6px; font-size: 12px; color: #666; }
+  .allin-line strong { color: #1a1a1a; font-weight: 500; }
+  .allin-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-bottom: 2px; }
+  .na { font-size: 18px; color: #bbb; }
+  .footnote { font-size: 11px; color: #aaa; margin-top: 0.5rem; }
+  @media (max-width: 540px) { .controls { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Embroidery cost comparison</h1>
+  <p class="subtitle" id="subtitle">Franklinton · Bolder Creative · 5Bs Printing</p>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Item type</label>
+      <div class="toggle-row">
+        <div class="toggle-btn active" id="btn-hat" onclick="setType('hat')">Hat</div>
+        <div class="toggle-btn" id="btn-clothing" onclick="setType('clothing')">Clothing</div>
+      </div>
+    </div>
+    <div class="control-group">
+      <label>Stitch count</label>
+      <select id="stitches">
+        <option value="1000">1,000</option>
+        <option value="2000">2,000</option>
+        <option value="3000">3,000</option>
+        <option value="4000">4,000</option>
+        <option value="5000">5,000</option>
+        <option value="6000">6,000</option>
+        <option value="7000">7,000</option>
+        <option value="8000">8,000</option>
+        <option value="9000">9,000</option>
+        <option value="10000" selected>10,000</option>
+        <option value="11000">11,000</option>
+        <option value="12000">12,000</option>
+        <option value="13000">13,000</option>
+        <option value="14000">14,000</option>
+        <option value="15000">15,000</option>
+        <option value="16000">16,000</option>
+        <option value="17000">17,000</option>
+        <option value="18000">18,000</option>
+        <option value="19000">19,000</option>
+        <option value="20000">20,000</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Quantity</label>
+      <input type="number" id="qty" value="60" min="1" max="9999" />
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+  <p class="footnote" id="footnote">All-in with labeling includes $5.00 avg blank + labeling cost</p>
+</div>
+
+<script>
+const BLANK = 5.00;
+let itemType = 'hat';
+
+function setType(t) {
+  itemType = t;
+  document.getElementById('btn-hat').classList.toggle('active', t === 'hat');
+  document.getElementById('btn-clothing').classList.toggle('active', t === 'clothing');
+  document.getElementById('footnote').style.display = t === 'hat' ? 'block' : 'none';
+  document.getElementById('subtitle').textContent = t === 'hat'
+    ? 'Franklinton · Bolder Creative · 5Bs Printing'
+    : 'Franklinton · Bolder Creative · 5Bs Printing · Hollywood';
+  calc();
+}
+
+const franklinton = {
+  name: "Franklinton",
+  labelCost: 0.90,
+  getQtyBracket(q) {
+    if (q <= 5) return 0;
+    if (q <= 11) return 1;
+    if (q <= 30) return 2;
+    if (q <= 74) return 3;
+    if (q <= 150) return 4;
+    if (q <= 300) return 5;
+    if (q <= 600) return 6;
+    return 7;
+  },
+  base10k: [11.34, 6.03, 5.59, 5.38, 5.29, 5.00, 4.77, 4.52],
+  addlPer1k: [1.15, 0.63, 0.55, 0.45, 0.43, 0.37, 0.36, 0.35],
+  pricing: {
+    6000:  [9.95, 5.18, 4.31, 3.89, 3.73, 3.65, 3.45, 3.28],
+    7000:  [11.34, 6.03, 5.18, 4.31, 4.13, 3.98, 3.78, 3.60],
+    8000:  [11.34, 6.03, 5.30, 4.68, 4.51, 4.31, 4.13, 3.92],
+    9000:  [11.34, 6.03, 5.46, 5.01, 4.91, 4.66, 4.44, 4.21],
+    10000: [11.34, 6.03, 5.59, 5.38, 5.29, 5.00, 4.77, 4.52],
+  },
+  getPrice(stitches, qty) {
+    const b = this.getQtyBracket(qty);
+    if (stitches <= 10000) {
+      let key;
+      if (stitches <= 6000) key = 6000;
+      else if (stitches <= 7000) key = 7000;
+      else if (stitches <= 8000) key = 8000;
+      else if (stitches <= 9000) key = 9000;
+      else key = 10000;
+      return { price: this.pricing[key][b], overage: null };
+    }
+    const extra1k = Math.ceil((stitches - 10000) / 1000);
+    const base = this.base10k[b];
+    const addl = this.addlPer1k[b];
+    return { price: +(base + extra1k * addl).toFixed(2), overage: `$${base.toFixed(2)} base + ${extra1k}×$${addl.toFixed(2)}` };
+  }
+};
+
+const bolder = {
+  name: "Bolder Creative",
+  labelCost: 0.90,
+  getQtyBracket(q) {
+    if (q <= 11) return 0;
+    if (q <= 47) return 1;
+    if (q <= 71) return 2;
+    if (q <= 199) return 3;
+    if (q <= 799) return 4;
+    return 5;
+  },
+  pricing: {
+    1999:  [8.00, 4.50, 3.75, 3.50, 2.75, 2.55],
+    3999:  [10.00, 5.00, 4.50, 4.00, 3.50, 3.00],
+    5999:  [12.00, 6.00, 5.50, 5.00, 4.55, 4.00],
+    7999:  [14.00, 7.00, 6.50, 6.00, 5.50, 5.00],
+    9999:  [16.00, 8.00, 7.50, 7.00, 6.50, 6.00],
+    12000: [18.00, 10.00, 9.50, 9.00, 8.50, 8.00],
+  },
+  getPrice(stitches, qty) {
+    const b = this.getQtyBracket(qty);
+    let key;
+    if (stitches <= 1999) key = 1999;
+    else if (stitches <= 3999) key = 3999;
+    else if (stitches <= 5999) key = 5999;
+    else if (stitches <= 7999) key = 7999;
+    else if (stitches <= 9999) key = 9999;
+    else key = 12000;
+    return { price: this.pricing[key][b], overage: null };
+  }
+};
+
+const fiveBs = {
+  name: "5Bs Printing",
+  labelCost: 0.75,
+  getQtyBracket(q) {
+    if (q <= 5) return null;
+    if (q <= 17) return 0;
+    if (q <= 71) return 1;
+    if (q <= 215) return 2;
+    if (q <= 719) return 3;
+    return 4;
+  },
+  pricing: {
+    5000:  [5.50, 4.20, 2.60, 2.00, 1.70],
+    10000: [6.80, 5.70, 3.50, 2.70, 2.25],
+    15000: [8.90, 7.40, 5.50, 4.20, 3.75],
+    20000: [11.50, 9.75, 7.00, 5.50, 4.90],
+  },
+  getPrice(stitches, qty) {
+    const bracket = this.getQtyBracket(qty);
+    if (bracket === null) return null;
+    let key;
+    if (stitches <= 5000) key = 5000;
+    else if (stitches <= 10000) key = 10000;
+    else if (stitches <= 15000) key = 15000;
+    else key = 20000;
+    return { price: this.pricing[key][bracket], overage: null };
+  }
+};
+
+const hollywood = {
+  name: "Hollywood",
+  labelCost: 0,
+  getQtyBracket(q) {
+    if (q <= 11) return 0;
+    if (q <= 23) return 1;
+    if (q <= 47) return 2;
+    if (q <= 143) return 3;
+    if (q <= 300) return 4;
+    return null;
+  },
+  pricing: {
+    3999:  [4.00, 3.50, 2.75, 2.30, 2.00],
+    5999:  [4.00, 3.75, 3.25, 2.50, 2.25],
+    7999:  [4.50, 4.25, 3.75, 3.00, 2.75],
+    9999:  [5.00, 4.50, 4.00, 3.50, 3.00],
+    11999: [5.50, 5.25, 4.75, 4.00, 3.50],
+    15999: [6.00, 5.50, 5.00, 4.50, 4.00],
+    19999: [7.00, 6.50, 6.25, 5.50, 4.50],
+  },
+  getPrice(stitches, qty) {
+    const bracket = this.getQtyBracket(qty);
+    if (bracket === null) return null;
+    let key;
+    if (stitches <= 3999) key = 3999;
+    else if (stitches <= 5999) key = 5999;
+    else if (stitches <= 7999) key = 7999;
+    else if (stitches <= 9999) key = 9999;
+    else if (stitches <= 11999) key = 11999;
+    else if (stitches <= 15999) key = 15999;
+    else key = 19999;
+    return { price: this.pricing[key][bracket], overage: null };
+  }
+};
+
+function calc() {
+  const stitches = parseInt(document.getElementById('stitches').value);
+  const qty = parseInt(document.getElementById('qty').value) || 1;
+
+  const hatVendors = [franklinton, bolder, fiveBs];
+  const clothingVendors = [franklinton, bolder, fiveBs, hollywood];
+  const activeVendors = itemType === 'hat' ? hatVendors : clothingVendors;
+
+  const resultsEl = document.getElementById('results');
+  resultsEl.style.gridTemplateColumns = activeVendors.length === 4 ? 'repeat(4,1fr)' : 'repeat(3,1fr)';
+
+  const results = activeVendors.map(v => v.getPrice(stitches, qty));
+  const totals = results.map(r => r ? +(r.price * qty).toFixed(2) : null);
+  const validTotals = totals.filter(t => t !== null);
+  const minTotal = validTotals.length ? Math.min(...validTotals) : null;
+
+  resultsEl.innerHTML = activeVendors.map((v, i) => {
+    const r = results[i];
+    const t = totals[i];
+    const isBest = t !== null && t === minTotal;
+    let allInUnit = null, allInTotal = null;
+    if (itemType === 'hat' && r) {
+      allInUnit = +(r.price + BLANK + v.labelCost).toFixed(2);
+      allInTotal = +(allInUnit * qty).toFixed(2);
+    }
+    return `<div class="vendor-card${isBest ? ' best' : ''}">
+      ${isBest ? '<span class="best-badge">Lowest total</span>' : ''}
+      <div class="vendor-name">${v.name}</div>
+      ${r ? `
+        <div class="unit-price">$${r.price.toFixed(2)}</div>
+        <div class="unit-label">per piece (print only)</div>
+        ${r.overage ? `<div class="overage">${r.overage}</div>` : ''}
+        <div class="total-line">Print total: <strong>$${t.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>
+        ${allInUnit ? `<div class="allin-line"><div class="allin-label">All-in with Labeling</div><strong>$${allInUnit.toFixed(2)}/unit</strong> · $${allInTotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} total</div>` : ''}
+      ` : `<div class="na">N/A</div><div class="unit-label">Outside range</div>`}
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('stitches').addEventListener('change', calc);
+document.getElementById('qty').addEventListener('input', calc);
+calc();
+</script>
+</body>
+</html>
