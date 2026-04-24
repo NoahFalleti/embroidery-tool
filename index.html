@@ -40,14 +40,39 @@
   .allin-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-bottom: 2px; }
   .na { font-size: 18px; color: #bbb; }
   .footnote { font-size: 11px; color: #aaa; margin-top: 0.5rem; }
-  @media (max-width: 540px) { .controls { grid-template-columns: 1fr 1fr; } }
+
+  /* Otto Overseas section */
+  #otto-section { margin-top: 16px; }
+  .otto-header {
+    font-size: 12px; font-weight: 500; color: #666;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .otto-header::after {
+    content: ''; flex: 1; height: 1px; background: #e5e5e5;
+  }
+  .otto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .otto-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem 1.25rem; }
+  .otto-program { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 6px; }
+  .otto-tier { font-size: 11px; font-weight: 600; color: #999; margin-bottom: 2px; }
+  .otto-unit-price { font-size: 26px; font-weight: 500; color: #1a1a1a; }
+  .otto-unit-label { font-size: 12px; color: #888; margin-bottom: 8px; }
+  .otto-total-line { margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f0f0; font-size: 13px; color: #666; }
+  .otto-total-line strong { color: #1a1a1a; font-weight: 500; }
+  .otto-note { font-size: 11px; color: #aaa; margin-top: 4px; font-style: italic; }
+  .approx { color: #d97706; }
+
+  @media (max-width: 540px) {
+    .controls { grid-template-columns: 1fr 1fr; }
+    .otto-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>Embroidery cost comparison</h1>
   <p class="subtitle" id="subtitle">Franklinton · Bolder Creative · 5Bs Printing</p>
-
   <div class="controls">
     <div class="control-group">
       <label>Item type</label>
@@ -86,11 +111,14 @@
       <input type="number" id="qty" value="60" min="1" max="9999" />
     </div>
   </div>
-
   <div class="results" id="results"></div>
   <p class="footnote" id="footnote">All-in with labeling includes $5.00 avg blank + labeling cost</p>
+  <div id="otto-section" style="display:none;">
+    <div class="otto-header">Otto Overseas</div>
+    <div class="otto-grid" id="otto-grid"></div>
+    <p class="footnote" style="margin-top:6px;">Otto prices are all-in cost per hat · <span class="approx">~</span> indicates modeled estimate · 30-day above 15k stitches uses adjusted rate</p>
+  </div>
 </div>
-
 <script>
 const BLANK = 5.00;
 let itemType = 'hat';
@@ -100,6 +128,7 @@ function setType(t) {
   document.getElementById('btn-hat').classList.toggle('active', t === 'hat');
   document.getElementById('btn-clothing').classList.toggle('active', t === 'clothing');
   document.getElementById('footnote').style.display = t === 'hat' ? 'block' : 'none';
+  document.getElementById('otto-section').style.display = t === 'hat' ? 'block' : 'none';
   document.getElementById('subtitle').textContent = t === 'hat'
     ? 'Franklinton · Bolder Creative · 5Bs Printing'
     : 'Franklinton · Bolder Creative · 5Bs Printing · Hollywood';
@@ -242,14 +271,83 @@ const hollywood = {
   }
 };
 
+// Otto Overseas pricing model
+const otto = {
+  // Confirmed data points keyed by [stitches][qty]
+  confirmed: {
+    d21: {
+      3000:  {24:13.68,48:13.40,72:11.93,96:11.93,144:10.67,288:9.34},
+      6000:  {24:14.12,48:13.85,72:12.11,96:12.11,144:11.12,288:9.73},
+      7000:  {24:13.97,48:13.70,72:11.97,96:11.97,144:10.97,288:9.60},
+      8000:  {24:14.12,48:13.85,72:12.11,96:12.11,144:11.12,288:9.73},
+      9000:  {24:14.27,48:14.00,72:12.25,96:12.25,144:11.27,288:9.86},
+      11000: {24:14.57,48:14.30,72:12.53,96:12.53,144:11.57},
+      15000: {24:15.17,48:14.90,72:13.09,96:13.09,144:12.17,288:10.64},
+      18000: {24:15.62,48:15.35,72:13.51,96:13.51,144:12.62,288:11.03},
+    },
+    d30: {
+      3000:  {24:12.34,48:12.11,72:10.65,96:10.65,144:9.22,288:8.55},
+      6000:  {24:12.76,48:12.47,72:10.78,96:10.78,144:9.58,288:8.91},
+      7000:  {24:12.62,48:12.35,72:10.67,96:10.67,144:9.46,288:8.79},
+      8000:  {24:12.76,48:12.47,72:10.78,96:10.78,144:9.58,288:8.91},
+      9000:  {24:12.90,48:12.59,72:10.89,96:10.89,144:9.70,288:9.03},
+      11000: {24:13.18,48:12.83,72:11.11,96:11.11,144:9.94},
+      15000: {24:13.74,48:13.31,72:11.55,96:11.55,144:10.42,288:9.75},
+      18000: {24:14.16,48:13.67,72:11.88,96:11.88,144:10.78,288:10.11},
+    }
+  },
+  rate21: 0.145,
+  rate30_low: 0.130,
+  rate30_high: 0.110,
+
+  getQtyTier(qty) {
+    if (qty <= 23) return 24;
+    if (qty <= 47) return 48;
+    if (qty <= 71) return 72;
+    if (qty <= 95) return 96;
+    if (qty <= 143) return 144;
+    return 288;
+  },
+
+  getBase(prog, qtyTier) {
+    const anchor = this.confirmed[prog][3000][qtyTier];
+    if (anchor == null) return null;
+    const rate = prog === 'd21' ? this.rate21 : this.rate30_low;
+    return anchor - 3 * rate;
+  },
+
+  getPrice(prog, stitches, qty) {
+    const qtyTier = this.getQtyTier(qty);
+    // Check for exact confirmed data point
+    const confirmedData = this.confirmed[prog][stitches];
+    if (confirmedData && confirmedData[qtyTier] != null) {
+      return { price: confirmedData[qtyTier], approx: false, tier: qtyTier };
+    }
+    // Model it
+    const base = this.getBase(prog, qtyTier);
+    if (base == null) return null;
+    let price, approx = false;
+    if (prog === 'd30' && stitches > 15000) {
+      const base15confirmed = this.confirmed.d30[15000][qtyTier];
+      const base15 = base15confirmed != null ? base15confirmed : (base + 15 * this.rate30_low);
+      price = base15 + ((stitches - 15000) / 1000) * this.rate30_high;
+      approx = true;
+    } else {
+      const rate = prog === 'd21' ? this.rate21 : this.rate30_low;
+      price = base + (stitches / 1000) * rate;
+      // Mark as approx if not a confirmed stitch count
+      approx = !this.confirmed[prog][stitches];
+    }
+    return { price: +price.toFixed(2), approx, tier: qtyTier };
+  }
+};
+
 function calc() {
   const stitches = parseInt(document.getElementById('stitches').value);
   const qty = parseInt(document.getElementById('qty').value) || 1;
-
   const hatVendors = [franklinton, bolder, fiveBs];
   const clothingVendors = [franklinton, bolder, fiveBs, hollywood];
   const activeVendors = itemType === 'hat' ? hatVendors : clothingVendors;
-
   const resultsEl = document.getElementById('results');
   resultsEl.style.gridTemplateColumns = activeVendors.length === 4 ? 'repeat(4,1fr)' : 'repeat(3,1fr)';
 
@@ -279,6 +377,27 @@ function calc() {
       ` : `<div class="na">N/A</div><div class="unit-label">Outside range</div>`}
     </div>`;
   }).join('');
+
+  // Otto Overseas — hat only
+  if (itemType === 'hat') {
+    const ottoEl = document.getElementById('otto-grid');
+    const programs = [
+      { key: 'd21', label: '21-day program', sublabel: 'Overseas Expedited' },
+      { key: 'd30', label: '30-day program', sublabel: 'Overseas Express' },
+    ];
+    ottoEl.innerHTML = programs.map(p => {
+      const result = otto.getPrice(p.key, stitches, qty);
+      if (!result) return `<div class="otto-card"><div class="otto-program">${p.label}</div><div class="na">N/A</div></div>`;
+      const total = +(result.price * qty).toFixed(2);
+      const tierLabel = result.tier >= 288 ? '288+' : `up to ${result.tier}`;
+      return `<div class="otto-card">
+        <div class="otto-program">${p.label} <span style="color:#bbb;font-weight:400;">· ${p.sublabel}</span></div>
+        <div class="unit-price">${result.approx ? '<span class="approx">~</span>' : ''}$${result.price.toFixed(2)}</div>
+        <div class="otto-unit-label">all-in per hat · qty tier: ${tierLabel}</div>
+        <div class="otto-total-line">Total (×${qty}): <strong>$${total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>
+      </div>`;
+    }).join('');
+  }
 }
 
 document.getElementById('stitches').addEventListener('change', calc);
