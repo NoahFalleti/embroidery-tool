@@ -373,7 +373,7 @@ function calc() {
         <div class="unit-label">per piece (print only)</div>
         ${r.overage ? `<div class="overage">${r.overage}</div>` : ''}
         <div class="total-line">Print total: <strong>$${t.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</strong></div>
-        ${allInUnit ? `<div class="allin-line"><div class="allin-label">All-in with Labeling</div><strong>$${allInUnit.toFixed(2)}/unit</strong> · $${allInTotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} total</div>` : ''}
+        ${allInUnit ? `<div class="allin-line"><div class="allin-label">All-in with Labeling</div><span style="font-size:20px;font-weight:500;color:#1a1a1a;">$${allInUnit.toFixed(2)}</span><span style="font-size:12px;color:#888;">/unit</span> &nbsp;·&nbsp; <span style="font-size:12px;color:#666;">$${allInTotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} total</span></div>` : ''}
       ` : `<div class="na">N/A</div><div class="unit-label">Outside range</div>`}
     </div>`;
   }).join('');
